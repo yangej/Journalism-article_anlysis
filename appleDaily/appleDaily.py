@@ -11,7 +11,6 @@ options = Options()
 options.add_argument("--disable-notifications")
 
 chrome = webdriver.Chrome('../chromedriver', chrome_options=options)
-chrome.get("https://www.facebook.com/")
 
 ## open browser
 chrome.get('http://www.rmbnewsbank.com/applec/appletp?@@0.8725746023111722#JUMPOINT')
@@ -38,15 +37,47 @@ time.sleep(3)
 
 # get links
 soup = BeautifulSoup(chrome.page_source, 'html.parser')
-detailATag = soup.findAll('a', { 'class': 'godetail' })
-detailLinks = [a.get('href') for a in detailATag]
+tuples = []
+resultEls = chrome.find_elements_by_class_name('godetail')
 
-#FIXME test whether can find next page btn
-try:
-    nextPageBtn = chrome.find_element_by_class_name('pagination')
-    print("pagination found!")
-except:
-    print("no next page!")
+for i in range(len(resultEls) - 1):
+    print('current article index: ', i)
+    time.sleep(5)
+    resultEls = chrome.find_elements_by_class_name('godetail')
+    time.sleep(2)
+    titleEl = resultEls[i]
+    print(resultEls[i])
+    #FIXME: NoneType Object
+    titleEl.click()
+    time.sleep(2)
+    break
+    soup = BeautifulSoup(chrome.page_source, 'html.parser')
+
+#     try:
+#         PRESS = '蘋果日報'
+#         title = soup.find(class_='edi_title').text.strip()
+#
+#         tdEls = soup.findAll('td')
+#         publish_date = tdEls[1].strip()
+#         content = tdEls[3].text.strip().replace('\n', '').replace(u'\u3000', u'')
+#
+#         tuple = (publish_date, title, content, PRESS)
+#         print(tuple)
+#         break
+# #         tuples.append(tuple)
+#
+#     except Exception as ex:
+#         print('skip!')
+#         print(ex)
+#         continue
+
+    chrome.back()
+
+# try:
+#     nextPageBtn = chrome.find_element_by_class_name('glyphicon-triangle-right')
+#     nextPageBtn.click()
+# except:
+#     print("no more pages!")
 
 ## get detail tuples for db
 # def getDetailTuples(links):
