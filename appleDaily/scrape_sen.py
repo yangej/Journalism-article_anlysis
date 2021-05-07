@@ -3,13 +3,15 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import os
+import csv
 import time
-import requests
 
 ## set browser
 options = Options()
 options.add_argument("--disable-notifications")
 chrome = webdriver.Chrome('../chromedriver', chrome_options=options)
+chrome.implicitly_wait(5)
 
 ## open browser
 chrome.get('http://www.rmbnewsbank.com/applec/appletp')
@@ -34,34 +36,32 @@ def writeTuplesToFile(year, tuples):
             writer.writerow(tuple)
 
 def scrape(keyword, durations):
-    ## select html elements
-    inputEls = chrome.find_elements_by_class_name('form-control')
-    keywordInputEl = inputEls[0]
-    fromInputEl = inputEls[1]
-    toInputEl = inputEls[2]
-    searchBtn = chrome.find_element_by_class_name('search')
-
-    ## manipulate search behavior
-    # set input values
-
-    keywordInputEl.send_keys(keyword)
-
     for duration in durations:
+        ## select html elements
+        time.sleep(5)
+        inputEls = chrome.find_elements_by_class_name('form-control')
+        keywordInputEl = inputEls[0]
+        fromInputEl = inputEls[1]
+        toInputEl = inputEls[2]
+        searchBtn = chrome.find_element_by_class_name('search')
+
+        keywordInputEl.send_keys(keyword)
         fromInputEl.send_keys(duration[0])
         toInputEl.send_keys(duration[1])
         searchBtn.click()
 
-        time.sleep(3)
+        time.sleep(1)
+        resultPage = chrome.current_url
 
         # get links
         soup = BeautifulSoup(chrome.page_source, 'html.parser')
+        resultEls = chrome.find_elements_by_class_name('sum_th')
         tuples = []
-        resultEls = chrome.find_elements_by_class_name('godetail')
 
-        for i in range(len(resultEls) - 1):
+        for i in range(len(resultEls)):
             print('current article index: ', i)
-            time.sleep(5)
-            chrome.execute_script(f"console.log(document.querySelectorAll('.godetail')[{i}])")
+            time.sleep(1)
+            chrome.find_elements_by_class_name('sum_th')[i].click()
             time.sleep(2)
             soup = BeautifulSoup(chrome.page_source, 'html.parser')
 
@@ -80,10 +80,12 @@ def scrape(keyword, durations):
             except Exception as ex:
                 print('skip!')
                 print(ex)
+                chrome.get(resultPage)
                 continue
 
-            chrome.back()
-        writeTuplesToFile(year, tuples)
+            time.sleep(2)
+            chrome.get(resultPage)
+        writeTuplesToFile(duration[2], tuples)
 
     try:
         nextPageBtn = chrome.find_element_by_class_name('glyphicon-triangle-right')
@@ -92,5 +94,5 @@ def scrape(keyword, durations):
         print("no more pages!")
 
 KEYWORD = u'奧斯卡 NOT ("英國奧斯卡" OR "日本奧斯卡")'
-durations = [('20170227', '20170305'), ('20180305', '20180311'), ('20190225', '20190307'), ('20200210', '20200216'), ('20210426', '20210502')]
+durations = [('20170227', '20170305', '2017'), ('20180305', '20180311', '2018'), ('20190225', '20190307', '2019'), ('20200210', '20200216', '2020'), ('20210426', '20210502', '2021')]
 scrape(KEYWORD, durations)
