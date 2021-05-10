@@ -76,6 +76,11 @@ yearLinks = [
     { 'year': "2019", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20190225&end_time=20190307&sort=date&type=all&type=entertainment&page=1" },
     { 'year': "2020", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20200210&end_time=20200216&sort=date&type=all&type=entertainment&page=1" },
     { 'year': "2021", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20210426&end_time=20210502&sort=date&type=all&type=entertainment&page=1" }
+    { 'year': "2012", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20120226&end_time=20120304&sort=date&type=all&type=entertainment&page=1" },
+    { 'year': "2013", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20130224&end_time=20130302&sort=date&type=all&type=entertainment&page=1" },
+    { 'year': "2014", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20140302&end_time=20140308&sort=date&type=all&type=entertainment&page=1" },
+    { 'year': "2015", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20150222&end_time=20150228&sort=date&type=all&type=entertainment&page=1" },
+    { 'year': "2016", 'url': "https://search.ltn.com.tw/list?keyword=%E5%A5%A7%E6%96%AF%E5%8D%A1&start_time=20160228&end_time=20160305&sort=date&type=all&type=entertainment&page=1" }
 ]
 
 for link in yearLinks:
