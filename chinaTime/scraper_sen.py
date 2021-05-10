@@ -89,11 +89,16 @@ def getDetailTuples(year, start, end):
 
 
 yearLinks = [
-    { 'year': "2021", 'start': { 'month': "4", 'date': "26" }, 'end': { 'month': "5", 'date': "2" } }
-    { 'year': "2020", 'start': { 'month': "2", 'date': "11" }, 'end': { 'month': "2", 'date': "16" } }
-    { 'year': "2019", 'start': { 'month': "2", 'date': "26" }, 'end': { 'month': "3", 'date': "7" } }
-    { 'year': "2018", 'start': { 'month': "3", 'date': "5" }, 'end': { 'month': "3", 'date': "11" } }
-    { 'year': "2017", 'start': { 'month': "2", 'date': "27" }, 'end': { 'month': "3", 'date': "5" } }
+    { 'year': "2021", 'start': { 'month': "4", 'date': "26" }, 'end': { 'month': "5", 'date': "2" } },
+    { 'year': "2020", 'start': { 'month': "2", 'date': "11" }, 'end': { 'month': "2", 'date': "16" } },
+    { 'year': "2019", 'start': { 'month': "2", 'date': "26" }, 'end': { 'month': "3", 'date': "7" } },
+    { 'year': "2018", 'start': { 'month': "3", 'date': "5" }, 'end': { 'month': "3", 'date': "11" } },
+    { 'year': "2017", 'start': { 'month': "2", 'date': "27" }, 'end': { 'month': "3", 'date': "5" } },
+    { 'year': "2016", 'start': { 'month': "2", 'date': "28" }, 'end': { 'month': "3", 'date': "5" } },
+    { 'year': "2015", 'start': { 'month': "2", 'date': "22" }, 'end': { 'month': "2", 'date': "28" } },
+    { 'year': "2014", 'start': { 'month': "3", 'date': "2" }, 'end': { 'month': "3", 'date': "8" } },
+    { 'year': "2013", 'start': { 'month': "2", 'date': "24" }, 'end': { 'month': "3", 'date': "2" } },
+    { 'year': "2012", 'start': { 'month': "2", 'date': "26" }, 'end': { 'month': "3", 'date': "4" } }
 ]
 
 url = 'http://kmw.chinatimes.com/News/NewsSearch.aspx?searchkind=s'
@@ -123,23 +128,6 @@ for link in yearLinks:
     chrome.find_element_by_xpath("//label[contains(text(), '旺報')]").click()
 
     try:
-        endInputEl.click()
-        time.sleep(1)
-        chrome.find_element_by_id('selCalendar_y').click()
-        time.sleep(1)
-        chrome.find_element_by_xpath(f"//option[@value='{year}']").click()
-        time.sleep(1)
-        chrome.find_element_by_id('selCalendar_m').click()
-        time.sleep(1)
-        chrome.find_element_by_xpath(f"//option[@value='{end['month']}']").click()
-        time.sleep(1)
-        endDateEl = chrome.find_element_by_xpath("//td[contains(text(), '" + end['date'] + "')]")
-        time.sleep(1)
-        chrome.execute_script("arguments[0].click();", endDateEl)
-    except Exception as ex:
-        print(ex)
-
-    try:
         startInputEl.click()
         time.sleep(1)
         chrome.find_element_by_id('selCalendar_y').click()
@@ -153,6 +141,23 @@ for link in yearLinks:
         startDateEl = chrome.find_element_by_xpath("//td[contains(text(), '" + start['date'] + "')]")
         time.sleep(1)
         chrome.execute_script("arguments[0].click();", startDateEl)
+    except Exception as ex:
+        print(ex)
+
+    try:
+        endInputEl.click()
+        time.sleep(1)
+        chrome.find_element_by_id('selCalendar_y').click()
+        time.sleep(1)
+        chrome.find_element_by_xpath(f"//option[@value='{year}']").click()
+        time.sleep(1)
+        chrome.find_element_by_id('selCalendar_m').click()
+        time.sleep(1)
+        chrome.find_element_by_xpath(f"//option[@value='{end['month']}']").click()
+        time.sleep(1)
+        endDateEl = chrome.find_element_by_xpath("//td[contains(text(), '" + end['date'] + "')]")
+        time.sleep(1)
+        chrome.execute_script("arguments[0].click();", endDateEl)
     except Exception as ex:
         print(ex)
 
