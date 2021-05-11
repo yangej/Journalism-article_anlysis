@@ -80,6 +80,11 @@ def getDetailTuples(year, listUrl):
     writeTuplesToFile(year, tuples)
 
 yearLinks = [
+    { 'year': "2012", 'from': "20120226", 'to': "20120304" },
+    { 'year': "2013", 'from': "20130224", 'to': '20130302' },
+    { 'year': "2014", 'from': "20140302", 'to': "20140308" },
+    { 'year': "2015", 'from': "20150222", 'to': "20150228" },
+    { 'year': "2016", 'from': "20160228", 'to': "20160305" },
     { 'year': "2017", 'from': "20170227", 'to': "20170305" },
     { 'year': "2018", 'from': "20180305", 'to': '20180312' },
     { 'year': "2019", 'from': "20190225", 'to': "20190307" },
@@ -89,6 +94,6 @@ yearLinks = [
 
 for link in yearLinks:
     # page num is hard coded!
-    url = f'https://udndata.com/ndapp/Searchdec?udndbid=udnfree&page=2&SearchString=%B6%F8%B4%B5%A5%64%2B%A4%E9%B4%C1%3E%3D{link["from"]}%2B%A4%E9%B4%C1%3C%3D{link["to"]}%2B%B3%F8%A7%4F%3D%C1%70%A6%58%B3%F8&sharepage=20&select=1&kind=2'
+    url = f'https://udndata.com/ndapp/Searchdec?udndbid=udnfree&page=3&SearchString=%B6%F8%B4%B5%A5%64%2B%A4%E9%B4%C1%3E%3D{link["from"]}%2B%A4%E9%B4%C1%3C%3D{link["to"]}%2B%B3%F8%A7%4F%3D%C1%70%A6%58%B3%F8&sharepage=20&select=1&kind=2'
     chrome.get(url)
     getDetailTuples(link['year'], url)
