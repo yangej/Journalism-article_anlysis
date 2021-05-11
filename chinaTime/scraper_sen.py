@@ -25,7 +25,7 @@ KEYWORD = '奧斯卡'
 def writeTuplesToFile(year, tuples):
     print('write into csv!!')
     dirPath = os.path.abspath(os.getcwd()) + '/records'
-    file = year + 'tuples.csv'
+    file = year + 'update.csv'
     path = os.path.join(dirPath, file)
 
     fileExist = False
@@ -79,13 +79,18 @@ def getDetailTuples(year, start, end):
         chrome.back()
     writeTuplesToFile(year, tuples)
 
-    nextBtn = chrome.find_element_by_id('ctl00_ContentPlaceHolder1_UCPage1_lbtnPageNext')
-    if(len(nextBtn.get_attribute('class')) >= 2):
-        print('no more pages!')
-    else:
-        nextBtn.click()
-        time.sleep(1)
-        getDetailTuples(year, start, end)
+    try:
+        nextBtn = chrome.find_element_by_id('ctl00_ContentPlaceHolder1_UCPage1_lbtnPageNext')
+        if(len(nextBtn.get_attribute('class')) >= 2):
+            print('no more pages!')
+        else:
+            nextBtn.click()
+            time.sleep(1)
+            getDetailTuples(year, start, end)
+    except Exception as ex:
+        print('only one page!')
+        print(ex)
+
 
 
 yearLinks = [
