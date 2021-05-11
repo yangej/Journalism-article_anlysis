@@ -40,7 +40,7 @@ def getDetailTuples(year, listUrl):
     resultEls = chrome.find_elements_by_class_name('control-pic')
     print('current year is: ', year)
 
-    for i in range(len(resultEls) - 1):
+    for i in range(len(resultEls)):
         print('current article index: ', i)
         time.sleep(random.random()*10)
         chrome.execute_script(f"window.scroll(0, {scrollOffset})")
