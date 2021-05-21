@@ -24,7 +24,7 @@ f.close()
 removed_words = common_words + stop_words
 
 ## get dataset
-dataset_name = 'test_articles.csv'
+dataset_name = 'clean_data.csv'
 initial_data_tuples = []
 data_tuples = []
 with open(dataset_name) as f:
@@ -83,26 +83,8 @@ class OutputFile:
             dir_path = os.path.abspath(os.getcwd()) + f'/results/{self.topic_year}_results/{self.topic_year}_{self.topic_num}_cluster_results'
         self.__dir_path = dir_path
 
-    def creat_topic_file(self):
-        top_file = f'{self.topic_year}_{self.topic_num}_cluster.csv'
-        top_path = os.path.join(self.__dir_path, top_file)
-        top_file_exist = False
-
-        if (os.path.exists(top_path)):
-            top_file_exist = True
-
-        with open(top_path, 'w', encoding='utf-8') as outfile:
-            writer = csv.writer(outfile)
-            if (top_file_exist == False):
-                field_names = ['topic', 'keywords']
-                writer.writerow(field_names)
-
-            for topic in self.topics:
-                writer.writerow(topic)
-        outfile.close()
-
     def create_doc_topic_file(self):
-        doc_file = f'{self.topic_year}_{self.topic_num}_document_cluster.csv'
+        doc_file = f'{self.topic_year}_{self.topic_num}_by_document.csv'
         doc_path = os.path.join(self.__dir_path, doc_file)
         doc_file_exist = False
 
@@ -120,7 +102,7 @@ class OutputFile:
         outfile.close()
 
     def create_topic_doc_file(self):
-        doc_file = f'{self.topic_year}_{self.topic_num}_cluster_document.csv'
+        doc_file = f'{self.topic_year}_{self.topic_num}_by_cluster.csv'
         doc_path = os.path.join(self.__dir_path, doc_file)
         doc_file_exist = False
 
@@ -130,7 +112,7 @@ class OutputFile:
         with open(doc_path, 'w', encoding='utf-8') as outfile:
             writer = csv.writer(outfile)
             if (doc_file_exist == False):
-                field_names = ['topic',  'title']
+                field_names = ['topic', 'keywords', 'title']
                 writer.writerow(field_names)
 
             for tuple in self.top_tuples:
@@ -143,7 +125,6 @@ class OutputFile:
         except Exception as ex:
             print('directory exists')
 
-        self.creat_topic_file()
         self.create_topic_doc_file()
         self.create_doc_topic_file()
 
@@ -174,15 +155,15 @@ for year in years:
         ## create documents with assigned topic
         doc_tuples = []
         for i in range(len(titles)):
-            tuple = (lda_topic_assignment[i], group_by_year_titles[year][i])
+            tuple = (lda_topic_assignment[i][0], lda_topic_assignment[i][1], group_by_year_titles[year][i])
             doc_tuples.append(tuple)
 
         ## create topics with belonging documents
         top_dictionary = {}
         for i in range(len(doc_tuples)):
             current_doc = doc_tuples[i]
-            doc_topic = current_doc[0][0]
-            doc_title = current_doc[1]
+            doc_topic = current_doc[0]
+            doc_title = current_doc[2]
 
             if top_dictionary.get(doc_topic) == None:
                 top_dictionary[doc_topic] = [doc_title]
@@ -192,9 +173,9 @@ for year in years:
         top_tuples = []
         for topic in range(topic_num):
             if top_dictionary.get(topic) == None:
-                top_tuples.append((topic, []))
+                top_tuples.append((topic, topics[topic][1], []))
             else:
-                top_tuples.append((topic, top_dictionary[topic]))
+                top_tuples.append((topic, topics[topic][1], top_dictionary[topic]))
 
         output = OutputFile(doc_tuples, top_tuples, year, topics, topic_num)
         output.create_files()
