@@ -18,15 +18,16 @@ with open('stop_word.txt') as f:
 f.close()
 
 with open('stop_word_manual.txt') as f:
-     [stop_words.append(line.strip()) for line in f.readlines()]
- f.close()
+    [stop_words.append(line.strip()) for line in f.readlines()]
+f.close()
 
 removed_words = common_words + stop_words
 
 ## get dataset
+dataset_name = 'test_articles.csv'
 initial_data_tuples = []
 data_tuples = []
-with open('clean_data.csv') as f:
+with open(dataset_name) as f:
     title_and_content = ''
     for line in f.readlines():
         str_arr = line.split(',')
@@ -45,15 +46,18 @@ eng_regex = r'([A-Z]+[a-z]*)'
 for tuple in data_tuples:
     year = tuple[0]
     title_and_content = tuple[1]
-    words = ''.join([word for word in jieba.lcut(title_and_content.replace(" ", "")) if word not in removed_words])
+
+    eng_words = re.findall(eng_regex, title_and_content)
+    chi_words = [word for word in jieba.lcut(re.sub(eng_regex, '', title_and_content.replace(" ", ""))) if word not in removed_words]
     # ^ remove stop words
 
     if group_by_year.get(year) == None:
         years.append(year)
-        group_by_year[year] = [words]
+        group_by_year[year] = [{ 'eng_words': eng_words, 'chi_words': chi_words }]
     else:
-        group_by_year[year].append(words)
+        group_by_year[year].append({ 'eng_words': eng_words, 'chi_words': chi_words })
 
+## get yearly titles
 group_by_year_titles = {}
 for tuple in initial_data_tuples:
     year = tuple[0]
@@ -64,50 +68,92 @@ for tuple in initial_data_tuples:
     else:
         group_by_year_titles[year].append(title)
 
+class OutputFile:
+    def __init__(self, doc_tuples, topic_year, topics, topic_num):
+        self.doc_tuples = doc_tuples
+        self.topic_year = topic_year
+        self.topics = topics
+        self.topic_num = topic_num
+
+        dir_path = ''
+        if (dataset_name == 'test_articles.csv'):
+            dir_path = os.path.abspath(os.getcwd()) + f'/test_results/{self.topic_year}_results/{self.topic_year}_{self.topic_num}_cluster_results'
+        else:
+            dir_path = os.path.abspath(os.getcwd()) + f'/results/{self.topic_year}_results/{self.topic_year}_{self.topic_num}_cluster_results'
+        self.__dir_path = dir_path
+
+    def creat_topic_file(self):
+        top_file = f'{self.topic_year}_{self.topic_num}_cluster.csv'
+        top_path = os.path.join(self.__dir_path, top_file)
+        top_file_exist = False
+
+        if (os.path.exists(top_path)):
+            top_file_exist = True
+
+        with open(top_path, 'w', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            if (top_file_exist == False):
+                field_names = ['topic', 'keywords']
+                writer.writerow(field_names)
+
+            for topic in self.topics:
+                writer.writerow(topic)
+        outfile.close()
+
+    def create_topic_doc_file(self):
+        doc_file = f'{self.topic_year}_{self.topic_num}_cluster_document.csv'
+        doc_path = os.path.join(self.__dir_path, doc_file)
+        doc_file_exist = False
+
+        if (os.path.exists(doc_path)):
+            doc_file_exist = True
+
+        with open(doc_path, 'w', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            if (doc_file_exist == False):
+                field_names = ['topic', 'probability',  'title']
+                writer.writerow(field_names)
+
+            for tuple in self.doc_tuples:
+                writer.writerow(tuple)
+        outfile.close()
+
+    def create_topic_and_doc_files(self):
+        try:
+            os.makedirs(self.__dir_path)
+        except Exception as ex:
+            print('directory exists')
+
+        self.creat_topic_file()
+        self.create_topic_doc_file()
+
 year_lda = []
 year_clusters = []
 num_topics = [5, 6, 7, 8, 9, 10]
 for year in years:
     current_year_docs = group_by_year[year]
-    dictionary = corpora.Dictionary([jieba.lcut(doc) for doc in current_year_docs])
-    corpus = [dictionary.doc2bow(jieba.lcut(doc)) for doc in current_year_docs]
 
+    ## gather all words
+    word_list = []
+    for obj in current_year_docs:
+        title_and_content = obj['eng_words'] + obj['chi_words']
+        word_list.append(title_and_content)
+
+    ## create training dictionary and bag of words
+    dictionary = corpora.Dictionary(word_list)
+    corpus = [dictionary.doc2bow(word) for word in word_list]
+
+    ## create different number of topics
     for num in num_topics:
         lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=num)
-        dirPath = os.path.abspath(os.getcwd()) + f'/results/{year}_results/{year}_{num}_cluster_results'
-        try:
-            os.makedirs(dirPath)
-        except Exception as ex:
-            print('directory exists')
+        topics = lda.print_topics(num_topics=num, num_words=10)
+        titles = group_by_year_titles[year]
 
-        topFile = f'{year}_{num}_cluster.csv'
-        topPath = os.path.join(dirPath, topFile)
-        topFileExist = False
-        if (os.path.exists(topPath)):
-            topFileExist = True
-        with open(topPath, 'w', encoding='utf-8') as outfile:
-            writer = csv.writer(outfile)
-            if (topFileExist == False):
-                fieldNames = ['topic', 'keywords']
-                writer.writerow(fieldNames)
+        doc_tuples = []
+        for i in range(len(titles)):
+            topic_pro = lda.get_document_topics(corpus[i])
+            tuple = (topic_pro, group_by_year_titles[year][i])
+            doc_tuples.append(tuple)
 
-            for topic in lda.print_topics(num_topics=num, num_words=10):
-                writer.writerow(topic)
-
-        docFile = f'{year}_{num}_cluster_document.csv'
-        docPath = os.path.join(dirPath, docFile)
-        docFileExist = False
-        if (os.path.exists(docPath)):
-            docFileExist = True
-        with open(docPath, 'w', encoding='utf-8') as outfile:
-            writer = csv.writer(outfile)
-            if (docFileExist == False):
-                fieldNames = ['topic', 'probability',  'title']
-                writer.writerow(fieldNames)
-
-            for i in range(len(group_by_year_titles[year])):
-                topic_pro = lda.get_document_topics(corpus[i])
-                tuple = (topic_pro, group_by_year_titles[year][i])
-                writer.writerow(tuple)
-
-    f.close()
+        output = OutputFile(doc_tuples, year, topics, num)
+        output.create_topic_and_doc_files()
