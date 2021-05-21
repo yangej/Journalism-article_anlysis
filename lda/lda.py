@@ -15,8 +15,13 @@ from itertools import chain
 common_words = ['奧斯卡', '電影', '片中', '最佳', '今年', '頒獎']
 with open('stop_word.txt') as f:
     stop_words = [line.strip() for line in f.readlines()]
-removed_words = common_words + stop_words
 f.close()
+
+with open('stop_word_manual.txt') as f:
+     [stop_words.append(line.strip()) for line in f.readlines()]
+ f.close()
+
+removed_words = common_words + stop_words
 
 ## get dataset
 initial_data_tuples = []
