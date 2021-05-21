@@ -69,8 +69,9 @@ for tuple in initial_data_tuples:
         group_by_year_titles[year].append(title)
 
 class OutputFile:
-    def __init__(self, doc_tuples, topic_year, topics, topic_num):
+    def __init__(self, doc_tuples, top_tuples, topic_year, topics, topic_num):
         self.doc_tuples = doc_tuples
+        self.top_tuples = top_tuples
         self.topic_year = topic_year
         self.topics = topics
         self.topic_num = topic_num
@@ -100,8 +101,8 @@ class OutputFile:
                 writer.writerow(topic)
         outfile.close()
 
-    def create_topic_doc_file(self):
-        doc_file = f'{self.topic_year}_{self.topic_num}_cluster_document.csv'
+    def create_doc_topic_file(self):
+        doc_file = f'{self.topic_year}_{self.topic_num}_document_cluster.csv'
         doc_path = os.path.join(self.__dir_path, doc_file)
         doc_file_exist = False
 
@@ -118,7 +119,25 @@ class OutputFile:
                 writer.writerow(tuple)
         outfile.close()
 
-    def create_topic_and_doc_files(self):
+    def create_topic_doc_file(self):
+        doc_file = f'{self.topic_year}_{self.topic_num}_cluster_document.csv'
+        doc_path = os.path.join(self.__dir_path, doc_file)
+        doc_file_exist = False
+
+        if (os.path.exists(doc_path)):
+            doc_file_exist = True
+
+        with open(doc_path, 'w', encoding='utf-8') as outfile:
+            writer = csv.writer(outfile)
+            if (doc_file_exist == False):
+                field_names = ['topic',  'title']
+                writer.writerow(field_names)
+
+            for tuple in self.top_tuples:
+                writer.writerow(tuple)
+        outfile.close()
+
+    def create_files(self):
         try:
             os.makedirs(self.__dir_path)
         except Exception as ex:
@@ -126,6 +145,7 @@ class OutputFile:
 
         self.creat_topic_file()
         self.create_topic_doc_file()
+        self.create_doc_topic_file()
 
 year_lda = []
 year_clusters = []
@@ -144,16 +164,37 @@ for year in years:
     corpus = [dictionary.doc2bow(word) for word in word_list]
 
     ## create different number of topics
-    for num in num_topics:
-        lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=num)
-        topics = lda.print_topics(num_topics=num, num_words=10)
+    for topic_num in num_topics:
+        lda = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=topic_num)
+        topics = lda.print_topics(num_topics=topic_num, num_words=10)
         titles = group_by_year_titles[year]
 
+        lda_topic_assignment = [max(p,key=lambda item: item[1]) for p in lda[corpus]]
+
+        ## create documents with assigned topic
         doc_tuples = []
         for i in range(len(titles)):
-            topic_pro = lda.get_document_topics(corpus[i])
-            tuple = (topic_pro, group_by_year_titles[year][i])
+            tuple = (lda_topic_assignment[i], group_by_year_titles[year][i])
             doc_tuples.append(tuple)
 
-        output = OutputFile(doc_tuples, year, topics, num)
-        output.create_topic_and_doc_files()
+        ## create topics with belonging documents
+        top_dictionary = {}
+        for i in range(len(doc_tuples)):
+            current_doc = doc_tuples[i]
+            doc_topic = current_doc[0][0]
+            doc_title = current_doc[1]
+
+            if top_dictionary.get(doc_topic) == None:
+                top_dictionary[doc_topic] = [doc_title]
+            else:
+                top_dictionary[doc_topic].append(doc_title)
+
+        top_tuples = []
+        for topic in range(topic_num):
+            if top_dictionary.get(topic) == None:
+                top_tuples.append((topic, []))
+            else:
+                top_tuples.append((topic, top_dictionary[topic]))
+
+        output = OutputFile(doc_tuples, top_tuples, year, topics, topic_num)
+        output.create_files()
