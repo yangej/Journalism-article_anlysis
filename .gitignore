@@ -1,3 +1,4 @@
 .idea
 .env
 venv_python3/
+./lda/results
