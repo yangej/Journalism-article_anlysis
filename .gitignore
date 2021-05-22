@@ -3,3 +3,9 @@
 venv_python3/
 lda/results
 lda/test_results
+lda/jeiba_results
+lda/jieba_test_results
+lda/ckip_results
+lda/ckip_test_results
+lda/data
+lda/data.zip
