@@ -8,8 +8,6 @@ import jieba.analyse
 import re
 import os
 import csv
-import pandas as pd
-from itertools import chain
 
 ## get stop words
 common_words = ['奧斯卡', '電影', '片中', '最佳', '今年', '頒獎']
