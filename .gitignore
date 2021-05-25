@@ -9,3 +9,5 @@ lda/ckip_results
 lda/ckip_test_results
 lda/data
 lda/data.zip
+lda/sklearn_test_results
+lda/sklearn_results
