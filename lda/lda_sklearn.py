@@ -144,11 +144,12 @@ for year in years:
     for topic_num in num_topics:
         lda = LatentDirichletAllocation(n_components=topic_num,
                                         learning_method='online',
-                                        max_iter=500,
+                                        max_iter=1000,
                                         learning_offset=50,
                                         random_state=0).fit(cv_data)
         lda_components = lda.components_
         doc_topic = lda.transform(cv_data)
+        ## doc_topic is the probabilities that the doc is assigned to each topics
 
         ## gather topics with features
         topics = []
