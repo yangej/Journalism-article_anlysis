@@ -108,8 +108,8 @@ class OutputFile:
 
 year_lda = []
 year_clusters = []
-num_topics = [5, 6, 7, 8, 9, 10]
-num_feature = 10
+num_topics = [5, 6, 7]
+num_feature = 20
 
 ## gather all words
 all_docs = []
