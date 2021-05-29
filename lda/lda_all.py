@@ -3,6 +3,7 @@
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import GridSearchCV
 import re
 import os
 import csv
@@ -10,16 +11,14 @@ from ckiptagger import WS
 ws = WS("./data")
 
 ## get stop words
-common_words = ['奧斯卡', '電影', '片中', '最佳', '今年', '頒獎', ' ']
+removed_words = []
 with open('stop_word.txt') as f:
-    stop_words = [line.strip() for line in f.readlines()]
+    removed_words = [line.strip() for line in f.readlines()]
 f.close()
 
 with open('stop_word_manual.txt') as f:
-    [stop_words.append(line.strip()) for line in f.readlines()]
+    [removed_words.append(line.strip()) for line in f.readlines()]
 f.close()
-
-removed_words = common_words + stop_words
 
 ## get dataset
 dataset_name = 'clean_data.csv'
@@ -128,10 +127,11 @@ for topic_num in num_topics:
                                     learning_method='online',
                                     max_iter=1000,
                                     learning_offset=300,
-                                    random_state=0).fit(cv_data)
+                                    random_state=0,
+                                    learning_decay=0.9).fit(cv_data)
     lda_components = lda.components_
     doc_topic = lda.transform(cv_data)
-    ## doc_topic is the probabilities that the doc is assigned to each topics
+    ## doc_topic is the scores that the doc is assigned to each topics
 
     ## gather topics with features
     topics = []
