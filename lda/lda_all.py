@@ -21,7 +21,7 @@ with open('stop_word_manual.txt') as f:
 f.close()
 
 ## get dataset
-dataset_name = 'clean_data.csv'
+dataset_name = 'no_an_tw_dataset.csv'
 titles = []
 texts_collection = []
 with open(dataset_name) as f:
@@ -89,7 +89,7 @@ class OutputFile:
         with open(doc_path, 'w', encoding='utf-8') as outfile:
             writer = csv.writer(outfile)
             if (doc_file_exist == False):
-                field_names = ['topic', 'features', 'title']
+                field_names = ['topic', 'features', 'count', 'title']
                 writer.writerow(field_names)
 
             for tuple in self.top_tuples:
@@ -103,7 +103,7 @@ class OutputFile:
             print('directory exists')
 
         self.create_topic_doc_file()
-        self.create_doc_topic_file()
+#         self.create_doc_topic_file()
 
 year_lda = []
 year_clusters = []
@@ -126,9 +126,9 @@ for topic_num in num_topics:
     lda = LatentDirichletAllocation(n_components=topic_num,
                                     learning_method='online',
                                     max_iter=1000,
-                                    learning_offset=300,
+                                    learning_offset=200,
                                     random_state=0,
-                                    learning_decay=0.9).fit(cv_data)
+                                    learning_decay=0.1).fit(cv_data)
     lda_components = lda.components_
     doc_topic = lda.transform(cv_data)
     ## doc_topic is the scores that the doc is assigned to each topics
@@ -165,10 +165,11 @@ for topic_num in num_topics:
         features = '+'.join(topics[topic_i])
 
         if top_dictionary.get(topic_i) == None:
-            top_tuples.append((topic_i, features, []))
+            top_tuples.append((topic_i, features, 0, []))
         else:
+            doc_count = len(top_dictionary[topic_i])
             title = top_dictionary[topic_i]
-            top_tuples.append((topic_i, features, title))
+            top_tuples.append((topic_i, features, doc_count, title))
 
     output = OutputFile(doc_tuples, top_tuples, topics, topic_num)
     output.create_files()

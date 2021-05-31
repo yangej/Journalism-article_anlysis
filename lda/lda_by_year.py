@@ -10,7 +10,6 @@ from ckiptagger import WS
 ws = WS("./data")
 
 ## get stop words
-common_words = ['奧斯卡', '電影', '片中', '最佳', '今年', '頒獎', ' ']
 with open('stop_word.txt') as f:
     stop_words = [line.strip() for line in f.readlines()]
 f.close()
@@ -18,8 +17,6 @@ f.close()
 with open('stop_word_manual.txt') as f:
     [stop_words.append(line.strip()) for line in f.readlines()]
 f.close()
-
-removed_words = common_words + stop_words
 
 ## get dataset
 dataset_name = 'clean_data.csv'
@@ -45,7 +42,7 @@ f.close()
 ws_results = ws(texts_collection)
 clean_texts_collection  = []
 for word_seg in ws_results:
-    clean_texts_collection.append(' '.join([word for word in word_seg if word not in removed_words]))
+    clean_texts_collection.append(' '.join([word for word in word_seg if word not in stop_words]))
 
 ## group dataset by year and split into eng & chi two parts
 years = []
@@ -106,7 +103,7 @@ class OutputFile:
         with open(doc_path, 'w', encoding='utf-8') as outfile:
             writer = csv.writer(outfile)
             if (doc_file_exist == False):
-                field_names = ['topic', 'features', 'title']
+                field_names = ['topic', 'count', 'features', 'title']
                 writer.writerow(field_names)
 
             for tuple in self.top_tuples:
@@ -124,8 +121,8 @@ class OutputFile:
 
 year_lda = []
 year_clusters = []
-num_topics = [5, 6, 7, 8, 9, 10]
-num_feature = 10
+num_topics = [5]
+num_feature = 20
 for year in years:
     current_year_docs = group_by_year[year]
 
@@ -144,7 +141,8 @@ for year in years:
     for topic_num in num_topics:
         lda = LatentDirichletAllocation(n_components=topic_num,
                                         learning_method='online',
-                                        max_iter=1000,
+                                        max_iter=400,
+                                        learning_decay=0.1,
                                         learning_offset=50,
                                         random_state=0).fit(cv_data)
         lda_components = lda.components_
@@ -185,8 +183,9 @@ for year in years:
             if top_dictionary.get(topic_i) == None:
                 top_tuples.append((topic_i, features, []))
             else:
+                doc_count = len(top_dictionary[topic_i])
                 title = top_dictionary[topic_i]
-                top_tuples.append((topic_i, features, title))
+                top_tuples.append((topic_i, features, doc_count, title))
 
         output = OutputFile(doc_tuples, top_tuples, year, topics, topic_num)
         output.create_files()
