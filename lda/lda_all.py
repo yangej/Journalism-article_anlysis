@@ -1,9 +1,11 @@
 #coding=utf-8
 
+from wordcloud import WordCloud, ImageColorGenerator
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import GridSearchCV
+import numpy as np
 import re
 import os
 import csv
@@ -21,22 +23,29 @@ with open('stop_word_manual.txt') as f:
 f.close()
 
 ## get dataset
-dataset_name = 'no_an_tw_dataset.csv'
+dataset_name = 'clean_data.csv'
 titles = []
 texts_collection = []
+original_dataset = []
 with open(dataset_name) as f:
     title_and_content = ''
     for line in f.readlines():
         str_arr = line.split(',')
 
         year = str_arr[0]
+        month = str_arr[1]
+        date = str_arr[2]
         title = str_arr[3]
         content = str_arr[4]
+        publisher = str_arr[5].strip()
+        original_data = (year, month, date, title, content, publisher)
         title_and_content = title + content
 
+        original_dataset.append(original_data)
         titles.append(title)
         texts_collection.append(title_and_content)
 f.close()
+collection_length = len(original_dataset)
 
 ## split words by ckip
 ws_results = ws(texts_collection)
@@ -47,11 +56,12 @@ for word_seg in ws_results:
     index += 1
 
 class OutputFile:
-    def __init__(self, doc_tuples, top_tuples, topics, topic_num):
+    def __init__(self, doc_tuples, top_tuples, topics, topic_num, top_dictionary):
         self.doc_tuples = doc_tuples
         self.top_tuples = top_tuples
         self.topics = topics
         self.topic_num = topic_num
+        self.top_dictionary = top_dictionary
 
         dir_path = ''
         if (dataset_name == 'test_articles.csv'):
@@ -74,9 +84,30 @@ class OutputFile:
                 field_names = ['topic',  'title']
                 writer.writerow(field_names)
 
-            for tuple in self.doc_tuples:
+            for doc_tuple in self.doc_tuples:
+                tuple = (doc_tuple[0], doc_tuple[1])
                 writer.writerow(tuple)
         outfile.close()
+
+    def create_topic_dataset(self):
+        keys = self.top_dictionary.keys()
+        for key in keys:
+            doc_file = f'all_{self.topic_num}_{key}_dataset.csv'
+            doc_file_exist = False
+
+            if (os.path.exists(doc_file)):
+                doc_file_exist = True
+
+            with open(doc_file, 'w', encoding='utf-8') as outfile:
+                writer = csv.writer(outfile)
+                if (doc_file_exist == False):
+                    field_names = ['年', '月', '日', '標題', '內容', '報社']
+                    writer.writerow(field_names)
+
+                for index in self.top_dictionary[key]:
+                    selected_doc = original_dataset[index]
+                    writer.writerow(selected_doc)
+            outfile.close()
 
     def create_topic_doc_file(self):
         doc_file = f'all_{self.topic_num}_by_cluster.csv'
@@ -103,7 +134,7 @@ class OutputFile:
             print('directory exists')
 
         self.create_topic_doc_file()
-#         self.create_doc_topic_file()
+        self.create_topic_dataset()
 
 year_lda = []
 year_clusters = []
@@ -119,7 +150,6 @@ for doc_tuple in clean_texts_collection:
 cv = CountVectorizer()
 cv_data = cv.fit_transform(all_docs)
 cv_feature_names = cv.get_feature_names()
-
 
 ## create different number of topics
 for topic_num in num_topics:
@@ -141,24 +171,24 @@ for topic_num in num_topics:
 
     ## create documents with assigned topic
     doc_tuples = []
-    for i in range(doc_topic.shape[0]):
+    for i in range(collection_length):
         most_fit_topic = doc_topic[i].argmax()
         title = clean_texts_collection[i][0]
 
-        tuple = (most_fit_topic, title)
+        tuple = (most_fit_topic, i)
         doc_tuples.append(tuple)
 
     ## create topics with belonging documents
     top_dictionary = {}
-    for i in range(len(doc_tuples)):
+    for i in range(collection_length):
         current_doc = doc_tuples[i]
         doc_topic = current_doc[0]
-        doc_title = current_doc[1]
+        doc_index = current_doc[1]
 
         if top_dictionary.get(doc_topic) == None:
-            top_dictionary[doc_topic] = [doc_title]
+            top_dictionary[doc_topic] = [doc_index]
         else:
-            top_dictionary[doc_topic].append(doc_title)
+            top_dictionary[doc_topic].append(doc_index)
 
     top_tuples = []
     for topic_i in range(topic_num):
@@ -171,5 +201,5 @@ for topic_num in num_topics:
             title = top_dictionary[topic_i]
             top_tuples.append((topic_i, features, doc_count, title))
 
-    output = OutputFile(doc_tuples, top_tuples, topics, topic_num)
+    output = OutputFile(doc_tuples, top_tuples, topics, topic_num, top_dictionary)
     output.create_files()
