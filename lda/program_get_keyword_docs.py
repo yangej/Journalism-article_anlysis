@@ -71,7 +71,7 @@ def create_dataset(filename, result_dataset):
 
 ## filter with keywords
 result_dataset = []
-keywords = ['李安', '李安中獎','李安奧斯卡','李安得獎','李安恩師','李安抱獎','李安真的','李安謝台','李安越洋','李安一','李安中','李安之','李安二','李安住','李安來','李安保','李安兒','李安全','李安剛','李安勇','李安口','李安周','李安和','李安大','李安奪','李安如','李安婉','李安常','李安悶','李安憑','李安手','李安抱','李安振','李安撇','李安擒','李安昨','李安時','李安會','李安榮','李安樂','李安正','李安生','李安當','李安祝','李安結','李安續','李安聊','李安能','李安花','李安莫','李安處','李安衰','李安讚','李安費','李安路','李安通','李安還','李安都','李安高']
-filename = 'dataset_with_an.csv'
+keywords = ['收視率']
+filename = 'dataset_with_rating.csv'
 get_dataset_with_keywords(result_dataset, keywords)
 create_dataset(filename, result_dataset)

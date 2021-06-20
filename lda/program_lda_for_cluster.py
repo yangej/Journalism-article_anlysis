@@ -28,7 +28,7 @@ class OutputFile:
         self.__dir_path = dir_path
 
     def create_doc_topic_file(self):
-        doc_file = f'all_{self.topic_num}_by_document.csv'
+        doc_file = f'{self.topic_num}_by_document.csv'
         doc_path = os.path.join(self.__dir_path, doc_file)
         doc_file_exist = False
 
@@ -49,7 +49,7 @@ class OutputFile:
     def create_topic_dataset(self):
         keys = self.top_dictionary.keys()
         for key in keys:
-            doc_file = f'all_{self.topic_num}_{key}_dataset.csv'
+            doc_file = f'{self.topic_num}_{key}_dataset.csv'
             doc_file_exist = False
 
             if (os.path.exists(doc_file)):
@@ -91,6 +91,7 @@ class OutputFile:
             print('directory exists')
 
         self.create_topic_doc_file()
+        self.create_topic_dataset()
 
 ## get stop words
 removed_words = []
@@ -103,9 +104,10 @@ with open('stop_word_manual.txt') as f:
 f.close()
 
 ## get dataset
-datasets = ['all_5_0_dataset.csv', 'all_5_1_dataset.csv', 'all_5_2_dataset.csv', 'all_5_3_dataset.csv', 'all_5_4_dataset.csv']
+datasets = ['dataset_all_5_0.csv', 'dataset_all_5_1.csv', 'dataset_all_5_2.csv', 'dataset_all_5_3.csv', 'dataset_all_5_4.csv']
 for dataset_name in datasets:
-    topic_num = dataset_name[6]
+    cluster_num = 5
+    topic_num = dataset_name[14] + '_' + str(cluster_num)
     titles = []
     texts_collection = []
     original_dataset = []
@@ -139,7 +141,6 @@ for dataset_name in datasets:
 
     year_lda = []
     year_clusters = []
-    cluster_num = 5
     num_feature = 20
 
     ## gather all words

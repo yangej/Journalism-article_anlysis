@@ -166,7 +166,10 @@ for topic_num in num_topics:
     ## gather topics with features
     topics = []
     for i, topic in enumerate(lda_components):
-        topic_features = [cv_feature_names[i] for i in topic.argsort()[:-num_feature - 1:-1]]
+        ## components_主題詞分佈的變體參數。
+        ## 由於主題詞分發的完整條件是Dirichlet，因此components_ [i，j]可以被視為偽代碼，其表示將字j分配給主題i的次數。
+        ## 它也可以被視為標準化後每個主題的單詞分佈。
+        topic_features = [f"{cv_feature_names[i]}: {str(round(topic[i], 2))}" for i in topic.argsort()[:-num_feature - 1:-1]]
         topics.append(topic_features)
 
     ## create documents with assigned topic
@@ -192,7 +195,7 @@ for topic_num in num_topics:
 
     top_tuples = []
     for topic_i in range(topic_num):
-        features = '+'.join(topics[topic_i])
+        features = '|'.join(topics[topic_i])
 
         if top_dictionary.get(topic_i) == None:
             top_tuples.append((topic_i, features, 0, []))
